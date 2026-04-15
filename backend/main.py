@@ -81,6 +81,64 @@ async def root():
     }
 
 
+@app.post("/predict", response_model=AssessmentResponse)
+async def predict_mental_health(request: AssessmentRequest):
+    """
+    Predict mental health risk level based on provided text.
+    This is the primary endpoint for assessment predictions.
+    
+    Parameters:
+    - text: User input text describing their mental state (min 20 characters)
+    
+    Returns:
+    - prediction: Risk level (low, moderate, high)
+    - confidence: Model confidence in the prediction (0-1)
+    - class_probabilities: Probability for each risk class
+    - risk_score: Normalized risk score (0-1)
+    """
+    if model is None or vectorizer is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    
+    # Validate input
+    text = request.text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+    
+    if len(text) < 20:
+        raise HTTPException(status_code=400, detail="Text must be at least 20 characters")
+    
+    if len(text) > 5000:
+        raise HTTPException(status_code=400, detail="Text cannot exceed 5000 characters")
+    
+    try:
+        # Vectorize text
+        text_vec = vectorizer.transform([text])
+        
+        # Make prediction
+        prediction = model.predict(text_vec)[0]
+        confidence = float(model.predict_proba(text_vec).max())
+        
+        # Get probability distribution
+        probabilities = model.predict_proba(text_vec)[0]
+        class_probabilities = {
+            class_name: float(prob)
+            for class_name, prob in zip(model.classes_, probabilities)
+        }
+        
+        # Calculate risk score
+        risk_score = calculate_risk_score(class_probabilities)
+        
+        return AssessmentResponse(
+            prediction=prediction,
+            confidence=confidence,
+            class_probabilities=class_probabilities,
+            risk_score=risk_score,
+        )
+    except Exception as e:
+        print(f"[v0] Error during assessment: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error during assessment")
+
+
 @app.post("/assess", response_model=AssessmentResponse)
 async def assess_mental_health(request: AssessmentRequest):
     """

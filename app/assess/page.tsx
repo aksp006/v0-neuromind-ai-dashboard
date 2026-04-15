@@ -28,8 +28,8 @@ export default function AssessPage() {
 
     try {
       // Call FastAPI backend
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const response = await fetch(`${apiUrl}/assess`, {
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+      const response = await fetch(`${apiUrl}/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +38,9 @@ export default function AssessPage() {
       })
 
       if (!response.ok) {
-        throw new Error(`Backend error: ${response.statusText}`)
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.detail || `Backend error: ${response.status} ${response.statusText}`
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()
@@ -57,11 +59,15 @@ export default function AssessPage() {
       localStorage.setItem('assessmentHistory', JSON.stringify(history.slice(-20)))
     } catch (err) {
       console.error('[v0] Assessment error:', err)
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to connect to assessment service. Make sure the backend is running.'
-      )
+      let errorMsg = 'Failed to connect to assessment service'
+      if (err instanceof Error) {
+        errorMsg = err.message
+      }
+      // Provide more helpful message for network errors
+      if (errorMsg.includes('Failed to fetch')) {
+        errorMsg = 'Connection failed. Make sure the backend server is running at ' + (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
+      }
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
