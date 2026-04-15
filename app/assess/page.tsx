@@ -29,7 +29,7 @@ export default function AssessPage() {
     try {
       // Call FastAPI backend
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '')
-      const response = await fetch(`${apiUrl}/predict`, {
+      const response = await fetch(`${apiUrl}/assess`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
