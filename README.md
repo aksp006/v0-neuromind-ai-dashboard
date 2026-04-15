@@ -1,7 +1,9 @@
 # NeuroMind AI - Mental Health Assessment with FAIR Ethics
 
 A modern web application for AI-powered mental health assessment, built with FAIR ethics principles (Fairness, Accountability, Responsible AI, and Transparency).
+🌐 Live Demo
 
+👉 [View NeuroMind AI Dashboard](https://v0-neuromind-ai-dashboard-luwvemsz2-aksp006-7494s-projects.vercel.app/)
 ## Overview
 
 NeuroMind AI uses machine learning to analyze text descriptions of mental health and provide risk assessments. The application emphasizes transparency, privacy, and ethical AI practices throughout.
